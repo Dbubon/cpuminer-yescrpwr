@@ -113,6 +113,7 @@ static const char *algo_names[] = {
 	[ALGO_YESPOWERR24]	= "yespowerR24",
         [ALGO_YESPOWERR32]      = "yespowerR32",
 	[ALGO_YESPOWER]		= "yespower",
+	[ALGO_YENTEN]		= "yenten",
 };
 
 bool opt_debug = false;
@@ -195,6 +196,7 @@ Options:\n\
                           yespowerR24 : yespower-0.5_R24 [JagaricoinR]\n\
                           yespowerR32 : yespower-0.5_R32 [Wavi]\n\
                           yespower    : yespower [Cryply]\n\
+                          yenten    : yespower-1.0_R16 [Yenten_New]\n\
   -o, --url=URL         URL of mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
   -u, --user=USERNAME   username for mining server\n\
@@ -1088,7 +1090,7 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 		free(xnonce2str);
 	}
 
-	if (opt_algo == ALGO_YESCRYPTR8G || opt_algo == ALGO_YESCRYPTR8 || opt_algo == ALGO_YESCRYPTR16 || opt_algo == ALGO_YESCRYPTR24 || opt_algo == ALGO_YESCRYPTR32 || opt_algo == ALGO_YESPOWERR8G || opt_algo == ALGO_YESPOWERR8 || opt_algo == ALGO_YESPOWERR16 || opt_algo == ALGO_YESPOWERR24 || opt_algo == ALGO_YESPOWERR32 || opt_algo == ALGO_YESPOWER)
+	if (opt_algo == ALGO_YESCRYPTR8G || opt_algo == ALGO_YESCRYPTR8 || opt_algo == ALGO_YESCRYPTR16 || opt_algo == ALGO_YESCRYPTR24 || opt_algo == ALGO_YESCRYPTR32 || opt_algo == ALGO_YESPOWERR8G || opt_algo == ALGO_YESPOWERR8 || opt_algo == ALGO_YESPOWERR16 || opt_algo == ALGO_YESPOWERR24 || opt_algo == ALGO_YESPOWERR32 || opt_algo == ALGO_YESPOWER || opt_algo == ALGO_YESPOWER || opt_algo == ALGO_YESPOWER || opt_algo == ALGO_YENTEN)
 		diff_to_target(work->target, sctx->job.diff / 65536.0);
 	else
 		diff_to_target(work->target, sctx->job.diff);
@@ -1212,6 +1214,9 @@ static void *miner_thread(void *userdata)
                         case ALGO_YESPOWER:
                                 max64 = 0x3fffff;
                                 break;
+                        case ALGO_YENTEN:
+                                max64 = 0x3fffff;
+                                break;
 			}
 		}
 		if (work.data[19] + max64 > end_nonce)
@@ -1266,6 +1271,10 @@ static void *miner_thread(void *userdata)
                         break;
                 case ALGO_YESPOWER:
                         rc = scanhash_yespower(thr_id, work.data, work.target,
+                                              max_nonce, &hashes_done);
+                        break;
+                case ALGO_YENTEN:
+                        rc = scanhash_yenten(thr_id, work.data, work.target,
                                               max_nonce, &hashes_done);
                         break;
 		default:
